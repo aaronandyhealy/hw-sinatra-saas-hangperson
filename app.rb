@@ -29,8 +29,8 @@ class HangpersonApp < Sinatra::Base
     # NOTE: don't change next line - it's needed by autograder!
     word = params[:word] || HangpersonGame.get_random_word
     # NOTE: don't change previous line - it's needed by autograder!
-	
-	@game = HangpersonGame.new(word)
+
+    @game = HangpersonGame.new(word)
     session[:game] =@game
     redirect '/show'
   end
@@ -41,11 +41,15 @@ class HangpersonApp < Sinatra::Base
   post '/guess' do
     letter = params[:guess].to_s[0]
   if /^[A-Z]+$/i.match(letter) ## If in alphabet
+   
     if !@game.guess(letter) ## If already guessed letter.
        flash[:message] = "You have already used that letter."
     end
   else ## If invalid
     flash[:message] = "Invalid guess."
+  end
+  
+ redirect '/show'
   end
   
   # Everytime a guess is made, we should eventually end up at this route.
@@ -54,18 +58,30 @@ class HangpersonApp < Sinatra::Base
   # Notice that the show.erb template expects to use the instance variables
   # wrong_guesses and word_with_guesses from @game.
   get '/show' do
-    ### YOUR CODE HERE ###
-    erb :show # You may change/remove this line
+   
+  if @game.check_win_or_lose == :win ## If won.
+      redirect '/win' 
+  elsif  @game.check_win_or_lose == :lose ## If lost.
+      redirect '/lose' 
+  end
+    
+    erb :show 
   end
   
-  get '/win' do
-    ### YOUR CODE HERE ###
-    erb :win # You may change/remove this line
+  get '/win' do ##Stop user cheating
+    if @game.check_win_or_lose == :win
+      erb :win 
+      else
+      redirect '/show' ## If not won go back to show view
+    end
   end
   
-  get '/lose' do
-    ### YOUR CODE HERE ###
-    erb :lose # You may change/remove this line
+   get '/lose' do 
+    if @game.check_win_or_lose == :lose
+      erb :lose 
+      else
+      redirect '/show' ## If not lost go back to show view
+    end
   end
   
 end
